@@ -1,0 +1,115 @@
+# directive @hasScope(scopes: [String]) on OBJECT | FIELD_DEFINITION
+# directive @hasRole(roles: [Role]) on OBJECT | FIELD_DEFINITION
+# directive @isAuthenticated on OBJECT | FIELD_DEFINITION
+
+type Query {
+    me: User!
+    post: Post!
+    users(query: String): [User!]!
+    posts(query: String): [Post!]!
+    comments: [Comment!]!
+    checkUserToken(token: String): String
+    onlyForAdmin: String
+    onlyForTeamLeaders: String
+    onlyForRosterManagers: String
+    onlyForSupportWorkers: String
+}
+
+type Mutation {
+    createUser(data: CreateUserInput!): User!
+    updateUser(id: ID!, data: UpdateUserInput!): User!
+    deleteUser(id: ID!): User!
+    createPost(data: CreatePostInput!): Post!
+    updatePost(id: ID!, data: UpdatePostInput!): Post!
+    deletePost(id: ID!): Post!
+    createComment(data: CreateCommentInput!): Comment!
+    updateComment(id: ID!, data: UpdateCommentInput): Comment!
+    deleteComment(id: ID!): Comment!
+}
+
+input CreateUserInput {
+    firstName: String!
+    lastName: String!
+    email: String!
+    age: Int
+}
+
+input UpdateUserInput {
+    firstName: String
+    lastName: String
+    email: String
+    age: Int
+}
+
+input CreatePostInput {
+    title: String!
+    body: String!
+    author: String!
+    published: Boolean!
+}
+
+input UpdatePostInput {
+    title: String
+    body: String
+    published: Boolean
+}
+
+input CreateCommentInput {
+    body: String!
+    author: String!
+    post: String!
+    published: Boolean!
+}
+
+input UpdateCommentInput {
+    body: String
+    published: Boolean
+}
+
+type User {
+    id: ID!
+    firstName: String!
+    lastName: String!
+    email: String!
+    age: Int
+    posts: [Post!]!
+    comments: [Comment!]!
+}
+
+type Post {
+    id: ID!
+    title: String!
+    body: String!
+    published: Boolean!
+    author: User!
+    comments: [Comment!]!
+}
+
+type Comment {
+    id: ID!
+    body: String!
+    author: User!
+    post: Post!
+    published: Boolean!
+}
+
+type Subscription {
+    comment(postId: ID!): CommentSubscriptionPayload!
+    post: PostSubscriptionPayload!
+}
+
+type PostSubscriptionPayload {
+    mutation: MutationType!
+    data: Post!
+}
+
+type CommentSubscriptionPayload {
+    mutation: MutationType!
+    data: Comment!
+}
+
+enum MutationType {
+    CREATED
+    UPDATED
+    DELETED
+}
