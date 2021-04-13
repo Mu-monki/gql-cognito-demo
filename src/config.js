@@ -5,5 +5,13 @@ export const config = {
         USER_POOL_WEB_CLIENT_ID: '6b8sl7pg9tgepbcnpvh25l6q3q',
         AUTHENTICATION_FLOW_TYPE: 'USER_PASSWORD_AUTH',
         JWK_URL: 'https://cognito-idp.ap-southeast-1.amazonaws.com/ap-southeast-1_htdQa6JCp/.well-known/jwks.json'
-    } 
+    },
+    accounts: {
+        ACCOUNT_STATUS: {
+            ACTIVE: 'Active',
+            INACTIVE: 'Inactive',
+            UNCONFIRMED: 'Unconfirmed',
+            FORCE_PASSWORD_CHANGE: 'ForcePasswordChange',
+        }
+    }
 };
