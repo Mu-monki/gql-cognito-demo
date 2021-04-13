@@ -48,6 +48,11 @@ const isSupportWorker = rule()(async (parent, args, ctx, info) => {
     return ctx.token['cognito:groups'].includes(roles.supportWorker);
 });
 
+const isGuest = rule()((parent, args, ctx, info) => {
+    console.log('user is a guest');
+    return true;
+});
+
 
 async function authenticate(req) {
     let token;
@@ -68,4 +73,4 @@ async function authenticate(req) {
     return token;
 }
 
-export { isAuthenticated, isAdmin, isTeamLeader, isRosterManager, isSupportWorker };
+export { isAuthenticated, isAdmin, isTeamLeader, isRosterManager, isSupportWorker, isGuest };
