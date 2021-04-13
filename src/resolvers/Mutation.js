@@ -1,18 +1,12 @@
 
 import { v4 as uuidv4 } from 'uuid';
+import { AuthService } from '../service/auth';
 
 const Mutation = {
 
-    // login(parent, args, { db }, info) {
-    //     console.log(args);
-
-        
-    // },
-
-    createUser(parent, args, { db }, info) {
-
-        console.log(args);
-
+    async createUser(parent, args, { db }, info) {
+        let user;
+        let cognitoUser;
         const emailTaken = db.users.some((user) => {
             return user.email === args.data.email;
         });
@@ -21,26 +15,53 @@ const Mutation = {
             throw new Error('Email Taken.');
         }
 
-        const user = {
-            id: uuidv4(),
-            
-            // Using Spread Operator
-            ...args.data
+        cognitoUser = await AuthService.createCognitoUser(args.data.email, args.data.tempPassword, args.data)
+                        .then(res => {
+                            const { tempPassword, ...userData } = args.data;
 
-            // Using Standard Def
-            // firstName: args.firstName,
-            // lastName: args.lastName,
-            // email: args.email,
-            // age: args.age,
-        }
+                            console.log('creating cognito user..', JSON.stringify(res, null, 4));
+                            console.log('userdata', userData);
+                            console.log('temp password', tempPassword);
 
-        db.users.push(user);
+                            user = {
+                                id: uuidv4(),
+                                ...userData
+                            }
 
+                            // Save Service User on DB
+                            db.users.push(user); 
+                            console.log('created service user', user);
+                            return user;
+                        })
+                        .catch(error => {
+                            console.log('creation failed', error);
+                        });
         return user;
     },
 
-    updateUser(parent, args, { db }, info) {
+    async confirmSignup(parent, args, { db, token }, info) {
+        const { data } = args;
 
+        const result = await AuthService.confirmSignUp(data.email, data.code)
+            .then(res => {
+                console.log('confirm signup', res);
+
+                // Change User Account status here.
+
+                return res;
+            })
+            .catch(error => {
+                console.log('error confirm signup', error);
+            });
+        
+        if(result) {
+            return true;
+        } else {
+            return false;
+        }
+    },
+
+    updateUser(parent, args, { db }, info) {
         const { id, data } = args;
         const user = db.users.find((user) => {
             return user.id === id;
@@ -76,35 +97,64 @@ const Mutation = {
         return user;
     },
 
-    deleteUser(parent, args, { db }, info) {
-        const userIndex = db.users.findIndex((user) => {
-            return user.id === args.id;
-        })
+    async disableUser(parent, args, { db }, info) {
+        const result = await AuthService.disableCognitoUser(args.email)
+                            .then((result) => {
 
-        if(userIndex === -1) {
-            throw new Error('User does not exist.');
+                                // Update User Account Status here
+
+                                return result;
+                            });
+        if(result) {
+            return true;
+        } else {
+            return false;
         }
-
-        const deletedUsers = db.users.splice(userIndex, 1);
-
-        db.posts = db.posts.filter((post) => {
-            const match = post.author === args.id;
-
-            if(match) {
-                db.comments = db.comments.filter((comment) => {
-                    return comment.post !== post.id;
-                })
-            }
-
-            return !match;
-        });
-
-        db.comments = db.comments.filter((comment) => {
-            return comment.author !== args.id;
-        });
-
-        return deletedUsers[0];
     },
+
+    async deleteUser(parent, args, {db}, info) {
+        const result = await AuthService.deleteCognitoUser(args.email)
+                            .then((result) => {
+                                // Delete Service User here
+
+                                return result;
+                            });
+        if(result) {
+            return true;
+        } else {
+            return false;
+        }
+    },
+
+    // deleteUser(parent, args, { db }, info) {
+    //     const userIndex = db.users.findIndex((user) => {
+    //         return user.id === args.id;
+    //     })
+
+    //     if(userIndex === -1) {
+    //         throw new Error('User does not exist.');
+    //     }
+
+    //     const deletedUsers = db.users.splice(userIndex, 1);
+
+    //     db.posts = db.posts.filter((post) => {
+    //         const match = post.author === args.id;
+
+    //         if(match) {
+    //             db.comments = db.comments.filter((comment) => {
+    //                 return comment.post !== post.id;
+    //             })
+    //         }
+
+    //         return !match;
+    //     });
+
+    //     db.comments = db.comments.filter((comment) => {
+    //         return comment.author !== args.id;
+    //     });
+
+    //     return deletedUsers[0];
+    // },
 
     createPost(parent, args, { db, pubsub }, info) {
         const userExists = db.users.some((user) => {
