@@ -1,19 +1,21 @@
-let users = [{
-    id: '1234',
-    firstName: 'Francis',
-    lastName: 'Garcia',
-    email: 'francis@email.com',
-}, {
-    id: '2345',
-    firstName: 'John',
-    lastName: 'Doe',
-    email: 'john@email.com',
-}, {
-    id: '3456',
-    firstName: 'James',
-    lastName: 'Bond',
-    email: 'james@email.com',
-}];
+let users = [
+// {
+//     id: '1234',
+//     firstName: 'Francis',
+//     lastName: 'Garcia',
+//     email: 'francis@email.com',
+// }, {
+//     id: '2345',
+//     firstName: 'John',
+//     lastName: 'Doe',
+//     email: 'john@email.com',
+// }, {
+//     id: '3456',
+//     firstName: 'James',
+//     lastName: 'Bond',
+//     email: 'james@email.com',
+// }
+];
 
 let posts = [{
     id: '54321',
