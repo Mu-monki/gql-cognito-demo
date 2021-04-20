@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import { prisma } from '../prisma';
 
 const Query = {
     users(parent, args, { db }, info) {
@@ -7,7 +8,11 @@ const Query = {
                 return user.firstName.toLowerCase().includes(args.query.toLowerCase());
             });
         } else {
-            return db.users;
+            return prisma.query.users(null, '{ id, firstName, middleName, lastName, email, accountStatus, contact, contactVerified, address, gender }')
+                .then(data => {
+                    console.log('prisma', data)
+                    return data;
+                });
         }
     },
 
