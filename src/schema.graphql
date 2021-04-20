@@ -24,6 +24,7 @@ type Mutation {
     createPost(data: CreatePostInput!): Post!
     updatePost(id: ID!, data: UpdatePostInput!): Post!
     deletePost(id: ID!): Post!
+    setCognitoGroup(email: String!, role: String!): Boolean!
     createComment(data: CreateCommentInput!): Comment!
     updateComment(id: ID!, data: UpdateCommentInput): Comment!
     deleteComment(id: ID!): Comment!
@@ -40,6 +41,7 @@ input CreateUserInput {
     contactVerified: String!
     accountStatus: String!
     gender: String!
+    # role: String
     age: Int
 }
 
