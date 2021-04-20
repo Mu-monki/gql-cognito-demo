@@ -13,5 +13,11 @@ export const config = {
             UNCONFIRMED: 'Unconfirmed',
             FORCE_PASSWORD_CHANGE: 'ForcePasswordChange',
         }
+    },
+    prisma: {
+        TYPEDEFS: 'src/generated/prisma.graphql',
+        ENDPOINT: 'http://localhost:4466',
+        SECRET: '',
+
     }
 };
