@@ -16,6 +16,8 @@ import Post from './resolvers/Post';
 import Comment from './resolvers/Comment';
 import Subscription from './resolvers/Subscription';
 
+import './prisma';
+
 // Configure AWS Amplify
 Amplify.configure({
     Auth: {
@@ -61,7 +63,7 @@ const server = new GraphQLServer({
         Comment,
     },
     middlewares: [
-        permissions
+        // permissions
     ],
     context(req) {
         const token = getClaims(req);
