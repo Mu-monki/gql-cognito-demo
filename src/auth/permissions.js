@@ -4,7 +4,7 @@ import { isAuthenticated, isAdmin, isTeamLeader, isRosterManager, isSupportWorke
 // Permissions
 const permissions = shield({
     Query: {
-        users: and(isAuthenticated),
+        users: isAuthenticated,
 
         // Queries for testing service authorization
         onlyForAdmin: and(isAuthenticated, isAdmin),
@@ -13,12 +13,13 @@ const permissions = shield({
         onlyForSupportWorkers: and(isAuthenticated, isSupportWorker),
     },
     Mutation: {
-        createUser: and(isAuthenticated, isAdmin),
-        disableUser: and(isGuest),
-        deleteUser: and(isGuest),
-        confirmSignup: and(isGuest),
+        createUser: isAdmin,
+        disableUser: isAdmin,
+        deleteUser: isAdmin,
+        confirmSignup: isGuest,
+        setCognitoGroup: isAdmin,
     },
-    User: isAuthenticated,
+    User: isGuest,
 });
 
 export { permissions as default };
