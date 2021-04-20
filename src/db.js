@@ -1,10 +1,17 @@
 let users = [
+{
+    id: '1234',
+    firstName: 'Francis',
+    middleName: 'Go',
+    lastName: 'Garcia',
+    email: 'francis@email.com',
+    contact: '09562777392',
+    contactVerified: 'Verified',
+    gender: 'Male',
+    address: 'QC',
+    accountStatus: "Active",
+}, 
 // {
-//     id: '1234',
-//     firstName: 'Francis',
-//     lastName: 'Garcia',
-//     email: 'francis@email.com',
-// }, {
 //     id: '2345',
 //     firstName: 'John',
 //     lastName: 'Doe',
