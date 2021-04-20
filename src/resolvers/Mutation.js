@@ -1,12 +1,16 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { AuthService } from '../service/auth';
+import { prisma } from '../prisma';
+import { USER_OPTIONS } from '../constants/users';
 
 const Mutation = {
 
     async createUser(parent, args, { db }, info) {
         let user;
         let cognitoUser;
+
+        const { tempPassword, ...userData } = args.data;
         const emailTaken = db.users.some((user) => {
             return user.email === args.data.email;
         });
@@ -16,9 +20,7 @@ const Mutation = {
         }
 
         cognitoUser = await AuthService.createCognitoUser(args.data.email, args.data.tempPassword, args.data)
-                        .then(res => {
-                            const { tempPassword, ...userData } = args.data;
-
+                        .then(async (res) => {
                             console.log('creating cognito user..', JSON.stringify(res, null, 4));
                             console.log('userdata', userData);
                             console.log('temp password', tempPassword);
@@ -27,16 +29,22 @@ const Mutation = {
                                 id: uuidv4(),
                                 ...userData
                             }
-
-                            // Save Service User on DB
-                            db.users.push(user); 
-                            console.log('created service user', user);
-                            return user;
                         })
                         .catch(error => {
                             console.log('creation failed', error);
                         });
-        return user;
+        
+        // // Save Service User via Prisma
+        console.log('data for prisma', userData);
+        return prisma.mutation.createUser({
+            data: {
+                ...userData
+            }
+        }, '{ id, firstName, middleName, lastName, email, accountStatus, contact, contactVerified, address, gender }')
+        .then(res => {
+            console.log('res', res);
+            return res;
+        })
     },
 
     async confirmSignup(parent, args, { db, token }, info) {
@@ -98,11 +106,27 @@ const Mutation = {
     },
 
     async disableUser(parent, args, { db }, info) {
+        console.log('disable user called');
         const result = await AuthService.disableCognitoUser(args.email)
                             .then((result) => {
 
-                                // Update User Account Status here
-
+                                // Find User Account Status here
+                                prisma.query.user({
+                                    where: {
+                                        email: args.email
+                                    }
+                                })
+                                .then(data => {
+                                    // Update User Account Status here
+                                    prisma.mutation.updateUser({
+                                        where: {
+                                            email: args.email
+                                        },
+                                        data: {
+                                            accountStatus: USER_OPTIONS.ACCOUNT_STATUSES.DISABLED
+                                        }
+                                    });
+                                });
                                 return result;
                             });
         if(result) {
@@ -115,7 +139,23 @@ const Mutation = {
     async deleteUser(parent, args, {db}, info) {
         const result = await AuthService.deleteCognitoUser(args.email)
                             .then((result) => {
-                                // Delete Service User here
+
+                                // Find User Objects in Prisma
+                                const user = prisma.query.user({
+                                    where: {
+                                        email:args.email
+                                    }
+                                }).then(data => {
+                                    console.log('user found', data);
+                                    // Delete Service User here
+                                    prisma.mutation.deleteUser(data.id)
+                                        .catch(err => {
+                                            console.log('something went wrong', err);
+                                        });
+                                    return true;
+                                }).catch(err => {
+                                    console.log('error', err)
+                                });
 
                                 return result;
                             });
@@ -126,35 +166,9 @@ const Mutation = {
         }
     },
 
-    // deleteUser(parent, args, { db }, info) {
-    //     const userIndex = db.users.findIndex((user) => {
-    //         return user.id === args.id;
-    //     })
-
-    //     if(userIndex === -1) {
-    //         throw new Error('User does not exist.');
-    //     }
-
-    //     const deletedUsers = db.users.splice(userIndex, 1);
-
-    //     db.posts = db.posts.filter((post) => {
-    //         const match = post.author === args.id;
-
-    //         if(match) {
-    //             db.comments = db.comments.filter((comment) => {
-    //                 return comment.post !== post.id;
-    //             })
-    //         }
-
-    //         return !match;
-    //     });
-
-    //     db.comments = db.comments.filter((comment) => {
-    //         return comment.author !== args.id;
-    //     });
-
-    //     return deletedUsers[0];
-    // },
+    async setCognitoGroup(email, role) {
+        return AuthService.setCognitoGroup(email, role);
+    },
 
     createPost(parent, args, { db, pubsub }, info) {
         const userExists = db.users.some((user) => {
