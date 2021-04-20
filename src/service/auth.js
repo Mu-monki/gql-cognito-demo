@@ -139,4 +139,32 @@ export class AuthService {
             return false;
         }
     }
+
+    static async setCognitoGroup(email, role) {
+        let isSuccessful = false;
+
+        // AWS JS SDK Cognito Identity Provider Configuration
+        const cognitoIdentityProvider = new CognitoIdentityProvider({
+            region: config.cognito.REGION,
+        });
+
+        // Deletes AWS Cognito User
+        const params = {
+            GroupName: role,
+            UserPoolId: config.cognito.USER_POOL_ID,
+            Username: email,
+        };
+
+        cognitoIdentityProvider.adminAddUserToGroup(params,
+            function(err, data) {
+                if(err) {
+                    console.log('setting cognito group failed', err);
+                } else {
+                    isSuccessful = true;
+                    console.log('user set to group', data);
+                }
+            });
+        
+        return isSuccessful;
+    }
 }
